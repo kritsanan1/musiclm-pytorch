@@ -204,18 +204,335 @@ transformer = create_optimized_audiospectrogram_transformer(
 )
 ```
 
-## Todo
+### Advanced Training Features
 
-- [x] mulan seems to be using decoupled contrastive learning, offer that as an option
-- [x] wrap mulan with mulan wrapper and quantize the output, project to audiolm dimensions
-- [x] modify audiolm to accept conditioning embeddings, optionally take care of different dimensions through a separate projection
-- [x] audiolm and mulan goes into musiclm and generate, filter with mulan
-- [x] give dynamic positional bias to self attention in AST
-- [x] implement MusicLM generating multiple samples and selecting top match with MuLaN
+The trainer now supports comprehensive training optimizations:
 
-- [x] support variable lengthed audio with masking in audio transformer
-- [x] add a version of mulan to <a href="https://github.com/mlfoundations/open_clip">open clip</a>
-- [x] set all the proper spectrogram hyperparameters
+```python
+from musiclm_pytorch.trainer import MuLaNTrainer
+
+# Create trainer with advanced features
+trainer = MuLaNTrainer(
+    mulan = mulan,
+    dataset = dataset,
+    use_mixed_precision = True,  # FP16 training
+    use_ema = True,  # Exponential moving averages
+    lr_scheduler_type = 'cosine',  # Cosine annealing
+    warmup_steps = 1000,
+    weight_decay = 0.01,
+    compile_model = True,  # PyTorch 2.0 compilation
+    max_checkpoints = 5,
+    checkpoint_every = 5000
+)
+
+# Train with validation and comprehensive logging
+trainer.train(num_epochs = 10, with_validation = True)
+```
+
+### Comprehensive Evaluation Metrics
+
+Evaluate your model with detailed metrics:
+
+```python
+from musiclm_pytorch.evaluation import MusicLMEvaluator
+
+# Create evaluator
+evaluator = MusicLMEvaluator(
+    mulan = mulan,
+    device = 'cuda'
+)
+
+# Evaluate model
+texts = ["A calm piano melody", "Upbeat electronic music"]
+generated_audio = [torch.randn(1, 16000), torch.randn(1, 16000)]
+
+results = evaluator.comprehensive_evaluation(
+    texts = texts,
+    generated_audio = generated_audio,
+    reference_audio = None,
+    audio_lengths = [16000, 16000]
+)
+
+print("Audio Quality Metrics:", results['audio_quality'])
+print("Text-Audio Alignment:", results['text_audio_alignment'])
+print("Music Structure Analysis:", results['music_structure'])
+```
+
+### Inference Optimization and Deployment
+
+Optimize models for fast inference and deployment:
+
+```python
+from musiclm_pytorch.inference import (
+    InferenceConfig, OptimizedMuLaN, BatchInferenceEngine,
+    ONNXExporter, DeploymentPackager
+)
+
+# Create optimized inference config
+config = InferenceConfig(
+    use_quantization = True,  # Model quantization
+    use_mixed_precision = True,  # FP16 inference
+    batch_size = 4,
+    memory_efficient = True,
+    compile_model = True
+)
+
+# Optimize model for inference
+optimized_mulan = OptimizedMuLaN(mulan, config)
+
+# Create batch inference engine
+engine = BatchInferenceEngine(
+    model = mulan,
+    config = config
+)
+
+# Process multiple audio files efficiently
+texts = ["Music description 1", "Music description 2", "Music description 3"]
+audio_outputs = engine.process_text_to_audio_batch(
+    texts = texts,
+    audio_shapes = [(80, 1024), (80, 1024), (80, 1024)]
+)
+
+# Export to ONNX for deployment
+onnx_exporter = ONNXExporter(config)
+onnx_exporter.export_mulan_to_onnx(
+    mulan = mulan,
+    export_path = "mulan_model.onnx"
+)
+
+# Create deployment package
+deployment_packager = DeploymentPackager(config)
+deployment_packager.create_deployment_package(
+    models = {'mulan': mulan},
+    package_path = "musiclm_deployment_package",
+    include_examples = True
+)
+```
+
+### Multi-GPU and Distributed Training
+
+Train on multiple GPUs with distributed training:
+
+```python
+from musiclm_pytorch.distributed import (
+    DistributedMuLaNTrainer, DistributedConfig,
+    run_distributed_training, create_distributed_config
+)
+
+# Create distributed config
+distributed_config = DistributedConfig(
+    world_size = 4,  # 4 GPUs
+    use_ddp = True,
+    use_amp = True,  # Mixed precision
+    gradient_accumulation_steps = 2,
+    gradient_clipping = 1.0,
+    sync_batchnorm = True
+)
+
+# Create distributed trainer
+trainer = DistributedMuLaNTrainer(
+    mulan = mulan,
+    dataset = dataset,
+    distributed_config = distributed_config,
+    lr = 1e-4,
+    weight_decay = 0.01
+)
+
+# Or use the convenient function
+results = run_distributed_training(
+    model = mulan,
+    dataset = dataset,
+    num_epochs = 10,
+    batch_size = 32,
+    learning_rate = 1e-4,
+    world_size = 4
+)
+```
+
+### Benchmarking and Speed Testing
+
+Benchmark inference performance:
+
+```python
+from musiclm_pytorch.inference import benchmark_inference_speed
+
+# Benchmark different configurations
+results = benchmark_inference_speed(
+    model = mulan,
+    config = config,
+    num_runs = 100,
+    warmup_runs = 10
+)
+
+print(f"Average inference time: {results['average_time_ms']:.2f}ms")
+print(f"Samples per second: {results['samples_per_second']:.2f}")
+```
+
+### Advanced Training Features
+
+The trainer now supports comprehensive training optimizations:
+
+```python
+from musiclm_pytorch.trainer import MuLaNTrainer
+
+# Create trainer with advanced features
+trainer = MuLaNTrainer(
+    mulan = mulan,
+    dataset = dataset,
+    use_mixed_precision = True,  # FP16 training
+    use_ema = True,  # Exponential moving averages
+    lr_scheduler_type = 'cosine',  # Cosine annealing
+    warmup_steps = 1000,
+    weight_decay = 0.01,
+    compile_model = True,  # PyTorch 2.0 compilation
+    max_checkpoints = 5,
+    checkpoint_every = 5000
+)
+
+# Train with validation and comprehensive logging
+trainer.train(num_epochs = 10, with_validation = True)
+```
+
+### Comprehensive Evaluation Metrics
+
+Evaluate your model with detailed metrics:
+
+```python
+from musiclm_pytorch.evaluation import MusicLMEvaluator
+
+# Create evaluator
+evaluator = MusicLMEvaluator(
+    mulan = mulan,
+    device = 'cuda'
+)
+
+# Evaluate model
+texts = ["A calm piano melody", "Upbeat electronic music"]
+generated_audio = [torch.randn(1, 16000), torch.randn(1, 16000)]
+
+results = evaluator.comprehensive_evaluation(
+    texts = texts,
+    generated_audio = generated_audio,
+    reference_audio = None,
+    audio_lengths = [16000, 16000]
+)
+
+print("Audio Quality Metrics:", results['audio_quality'])
+print("Text-Audio Alignment:", results['text_audio_alignment'])
+print("Music Structure Analysis:", results['music_structure'])
+```
+
+### Inference Optimization and Deployment
+
+Optimize models for fast inference and deployment:
+
+```python
+from musiclm_pytorch.inference import (
+    InferenceConfig, OptimizedMuLaN, BatchInferenceEngine,
+    ONNXExporter, DeploymentPackager
+)
+
+# Create optimized inference config
+config = InferenceConfig(
+    use_quantization = True,  # Model quantization
+    use_mixed_precision = True,  # FP16 inference
+    batch_size = 4,
+    memory_efficient = True,
+    compile_model = True
+)
+
+# Optimize model for inference
+optimized_mulan = OptimizedMuLaN(mulan, config)
+
+# Create batch inference engine
+engine = BatchInferenceEngine(
+    model = mulan,
+    config = config
+)
+
+# Process multiple audio files efficiently
+texts = ["Music description 1", "Music description 2", "Music description 3"]
+audio_outputs = engine.process_text_to_audio_batch(
+    texts = texts,
+    audio_shapes = [(80, 1024), (80, 1024), (80, 1024)]
+)
+
+# Export to ONNX for deployment
+onnx_exporter = ONNXExporter(config)
+onnx_exporter.export_mulan_to_onnx(
+    mulan = mulan,
+    export_path = "mulan_model.onnx"
+)
+
+# Create deployment package
+deployment_packager = DeploymentPackager(config)
+deployment_packager.create_deployment_package(
+    models = {'mulan': mulan},
+    package_path = "musiclm_deployment_package",
+    include_examples = True
+)
+```
+
+### Multi-GPU and Distributed Training
+
+Train on multiple GPUs with distributed training:
+
+```python
+from musiclm_pytorch.distributed import (
+    DistributedMuLaNTrainer, DistributedConfig,
+    run_distributed_training, create_distributed_config
+)
+
+# Create distributed config
+distributed_config = DistributedConfig(
+    world_size = 4,  # 4 GPUs
+    use_ddp = True,
+    use_amp = True,  # Mixed precision
+    gradient_accumulation_steps = 2,
+    gradient_clipping = 1.0,
+    sync_batchnorm = True
+)
+
+# Create distributed trainer
+trainer = DistributedMuLaNTrainer(
+    mulan = mulan,
+    dataset = dataset,
+    distributed_config = distributed_config,
+    lr = 1e-4,
+    weight_decay = 0.01
+)
+
+# Or use the convenient function
+results = run_distributed_training(
+    model = mulan,
+    dataset = dataset,
+    num_epochs = 10,
+    batch_size = 32,
+    learning_rate = 1e-4,
+    world_size = 4
+)
+```
+
+### Benchmarking and Speed Testing
+
+Benchmark inference performance:
+
+```python
+from musiclm_pytorch.inference import benchmark_inference_speed
+
+# Benchmark different configurations
+results = benchmark_inference_speed(
+    model = mulan,
+    config = config,
+    num_runs = 100,
+    warmup_runs = 10
+)
+
+print(f"Average inference time: {results['average_time_ms']:.2f}ms")
+print(f"Samples per second: {results['samples_per_second']:.2f}")
+```
+
+
 
 ## Citations
 
